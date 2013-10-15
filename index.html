@@ -1,0 +1,107 @@
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="storage.js"></script>
+<script src="storageItem.js"></script>
+
+
+<script type="text/javascript">
+	function submitForm(item) {
+		//if(navigator.onLine) {
+		if($("#online").is(":checked") == 1) {
+			$.post("server/index.php", item.getValue(), function(data) {
+				$("#responses").prepend(data);
+				console.log(item.getKey() + " submitted");
+				FormStorage.remove(item.getKey());
+				checkStoredForms();
+			});
+		}
+	}
+
+	function submitFormsIfOnline() {
+		//if(navigator.onLine) {
+		if($("#online").is(":checked") == 1) {
+			if(FormStorage.isEmpty()) {
+				console.log("NO forms to submit");
+			} else {
+				FormStorage.submitAll(submitForm);
+			}
+		} else {
+			console.log("NOT online");
+		}
+	}
+
+	function checkStoredForms() {
+		message = "";
+		if($("#online").is(":checked") == 1) {
+			if(!FormStorage.isEmpty()) {
+				message = $("<div />")
+					.html("You are online and there are forms to submit. Click here to do it")
+					.css({cursor: "pointer",color: "green"})
+					.click(function() {
+						submitFormsIfOnline();
+					})
+			} else {
+				message = "<font color='orange'>You are online and there are no local forms to submit</font>";
+			}
+		} else {
+			message = "You are not online and all the forms will be stored locally";
+		}
+
+		$("#message").html(message);
+	}
+
+	$(function() {
+
+		FormStorage.init();
+
+		checkStoredForms();
+		setInterval("checkStoredForms()", 5000);
+
+		FormStorage.empty();
+
+		if(FormStorage.isSupported()) {
+			console.log("Local Storage Supported");
+
+			// adding few forms in the local storage
+			FormStorage.add("name=john&list=1");
+			FormStorage.add("name=michael&list=2");
+			FormStorage.add("name=michael&list=3");
+			FormStorage.show();
+
+		} else {
+			console.log("Local Storage NOT Supported");
+		}
+
+		$("form").submit(function() {
+			FormStorage.add($(this).serialize());
+			$(this)[0].reset();
+			console.log("Form stored");
+			submitFormsIfOnline();
+			checkStoredForms();
+			return false;
+		});
+	});
+</script>
+
+<style type="text/css">
+	#message {
+		color: red;
+		padding: 30px;
+		font-weight: bold;
+	}
+</style>
+
+<p><input type="checkbox" id="online" value="1" /> Online</p>
+
+<div id="message"></div>
+
+<form id="my-form" method="POST">
+	<input type="text" name="name" placeholder="First name" />
+	<select name="list">
+		<option value="1">One</option>
+		<option value="2">Two</option>
+		<option value="3">Three</option>
+	</select>
+	<input type="submit" name="submit" value="Send" />
+</form>
+
+<div id="responses"></div>
