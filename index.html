@@ -1,7 +1,5 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="storage.js"></script>
-<script src="storageItem.js"></script>
-
+<script src="MyLocalStorage.js"></script>
 
 <script type="text/javascript">
 	function submitForm(item) {
@@ -10,7 +8,7 @@
 			$.post("server/index.php", item.getValue(), function(data) {
 				$("#responses").prepend(data);
 				console.log(item.getKey() + " submitted");
-				FormStorage.remove(item.getKey());
+				MyLocalStorage.remove(item.getKey());
 				checkStoredForms();
 			});
 		}
@@ -19,10 +17,10 @@
 	function submitFormsIfOnline() {
 		//if(navigator.onLine) {
 		if($("#online").is(":checked") == 1) {
-			if(FormStorage.isEmpty()) {
+			if(MyLocalStorage.isEmpty()) {
 				console.log("NO forms to submit");
 			} else {
-				FormStorage.submitAll(submitForm);
+				MyLocalStorage.submitAll(submitForm);
 			}
 		} else {
 			console.log("NOT online");
@@ -32,7 +30,7 @@
 	function checkStoredForms() {
 		message = "";
 		if($("#online").is(":checked") == 1) {
-			if(!FormStorage.isEmpty()) {
+			if(!MyLocalStorage.isEmpty()) {
 				message = $("<div />")
 					.html("You are online and there are forms to submit. Click here to do it")
 					.css({cursor: "pointer",color: "green"})
@@ -51,28 +49,28 @@
 
 	$(function() {
 
-		FormStorage.init();
+		MyLocalStorage.init("form_");
 
 		checkStoredForms();
 		setInterval("checkStoredForms()", 5000);
 
-		FormStorage.empty();
+		MyLocalStorage.empty();
 
-		if(FormStorage.isSupported()) {
+		if(MyLocalStorage.isSupported()) {
 			console.log("Local Storage Supported");
 
 			// adding few forms in the local storage
-			FormStorage.add("name=john&list=1");
-			FormStorage.add("name=michael&list=2");
-			FormStorage.add("name=michael&list=3");
-			FormStorage.show();
+			MyLocalStorage.add("name=john&list=1");
+			MyLocalStorage.add("name=michael&list=2");
+			MyLocalStorage.add("name=michael&list=3");
+			MyLocalStorage.show();
 
 		} else {
 			console.log("Local Storage NOT Supported");
 		}
 
 		$("form").submit(function() {
-			FormStorage.add($(this).serialize());
+			MyLocalStorage.add($(this).serialize());
 			$(this)[0].reset();
 			console.log("Form stored");
 			submitFormsIfOnline();
